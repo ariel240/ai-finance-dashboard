@@ -55,8 +55,11 @@ function App() {
             searchSymbol={searchSymbol}
             onSearchChange={setSearchSymbol}
             onAddToWatchlist={handleAddToWatchlist}
+            onAnalyze={handleAnalyze}
+            isLoading={isLoading}
           />
-          <StatsRow />
+          <StatsRow
+            quote={quote} />
           <Chart />
           <AIAnalysis />
         </main>
