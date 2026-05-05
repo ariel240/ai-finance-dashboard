@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { fetchStockQuote, StockQuote } from './api';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import StatsRow from './components/StatsRow';
@@ -9,6 +10,9 @@ import Chart from './components/Chart'
 function App() {
   const [searchSymbol, setSearchSymbol] = useState<string>('');
   const [watchlist, setWatchlist] = useState<string[]>(['AAPL', 'GOOGL', 'TSLA']);
+
+  const [quote, setQuote] = useState<StockQuote | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   function handleSelectFromWatchlist(ticker: string): void {
     setSearchSymbol(ticker);
@@ -22,6 +26,19 @@ function App() {
 
   function handleRemoveFromWatchlist(ticker: string): void {
     setWatchlist(watchlist.filter(t => t !== ticker));
+  }
+
+  async function handleAnalyze(): Promise<void> {
+    if (!searchSymbol) return;
+    setIsLoading(true);
+    try {
+      const data = await fetchStockQuote(searchSymbol);
+      setQuote(data);
+    } catch (error) {
+      console.error('Failed to fetch stock data:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
