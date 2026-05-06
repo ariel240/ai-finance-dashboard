@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { fetchStockQuote, StockQuote } from './api';
+import { fetchStockQuote, StockQuote, fetchDailyPrices, PricePoint } from './api';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import StatsRow from './components/StatsRow';
@@ -10,9 +10,9 @@ import Chart from './components/Chart'
 function App() {
   const [searchSymbol, setSearchSymbol] = useState<string>('');
   const [watchlist, setWatchlist] = useState<string[]>(['AAPL', 'GOOGL', 'TSLA']);
-
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [priceHistory, setPriceHistory] = useState<PricePoint[]>([]);
 
   function handleSelectFromWatchlist(ticker: string): void {
     setSearchSymbol(ticker);
@@ -32,14 +32,19 @@ function App() {
     if (!searchSymbol) return;
     setIsLoading(true);
     try {
-      const data = await fetchStockQuote(searchSymbol);
-      setQuote(data);
+      const [quoteData, priceData] = await Promise.all([
+      fetchStockQuote(searchSymbol),
+      fetchDailyPrices(searchSymbol),
+      ]);
+      setQuote(quoteData);
+      setPriceHistory(priceData);
     } catch (error) {
       console.error('Failed to fetch stock data:', error);
     } finally {
       setIsLoading(false);
     }
   }
+  
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
@@ -60,7 +65,7 @@ function App() {
           />
           <StatsRow
             quote={quote} />
-          <Chart />
+          <Chart data={priceHistory} ticker={searchSymbol || null} />
           <AIAnalysis />
         </main>
       </div>
