@@ -56,6 +56,7 @@ export async function fetchDailyPrices(ticker: string): Promise<PricePoint[]> {
 
   if (!timeSeries) {
     console.error('No time series data:', data);
+    console.error('Full response:', JSON.stringify(data));
     return [];
   }
   const result = Object.entries(timeSeries)
@@ -80,4 +81,21 @@ export function formatVolume(volume: number): string {
     return `${(volume / 1_000).toFixed(1)}K`;
   }
   return volume.toString();
+}
+
+export async function fetchAIAnalysis(
+  ticker: string,
+  quote: StockQuote,
+  priceHistory: PricePoint[]
+): Promise<string> {
+  const response = await fetch('http://localhost:3001/api/analyze', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ticker, quote, priceHistory }),
+  });
+
+  const data = await response.json();
+  return data.analysis;
 }

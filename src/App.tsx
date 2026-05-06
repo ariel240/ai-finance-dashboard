@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { fetchStockQuote, StockQuote, fetchDailyPrices, PricePoint } from './api';
+import { fetchStockQuote, StockQuote, fetchDailyPrices, PricePoint, fetchAIAnalysis } from './api';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import StatsRow from './components/StatsRow';
@@ -13,6 +13,7 @@ function App() {
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [priceHistory, setPriceHistory] = useState<PricePoint[]>([]);
+  const [analysis, setAnalysis] = useState<string>('');
 
   function handleSelectFromWatchlist(ticker: string): void {
     setSearchSymbol(ticker);
@@ -36,15 +37,17 @@ function App() {
       fetchStockQuote(searchSymbol),
       fetchDailyPrices(searchSymbol),
       ]);
+      const analysisData = await fetchAIAnalysis(searchSymbol, quoteData, priceData);
       setQuote(quoteData);
       setPriceHistory(priceData);
+      setAnalysis(analysisData);
     } catch (error) {
       console.error('Failed to fetch stock data:', error);
     } finally {
       setIsLoading(false);
     }
   }
-  
+
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
@@ -66,7 +69,7 @@ function App() {
           <StatsRow
             quote={quote} />
           <Chart data={priceHistory} ticker={searchSymbol || null} />
-          <AIAnalysis />
+          <AIAnalysis analysis={analysis} />
         </main>
       </div>
     </div>
