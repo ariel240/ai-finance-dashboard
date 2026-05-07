@@ -5,7 +5,10 @@ import YahooFinance from 'yahoo-finance2';
 
 dotenv.config();
 
-const yahooFinance = new YahooFinance();
+const yahooFinance = new YahooFinance({
+  suppressNotices: ['yahooSurvey', 'ripHistorical'],
+  cookieJar: true,
+});
 const server = express();
 const PORT = 3001;
 
