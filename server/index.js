@@ -79,7 +79,7 @@ server.get('/api/prices/:ticker', async (req, res) => {
   const { ticker } = req.params;
 
   try {
-    const result = await yahooFinance.historical(ticker, {
+    const result = await yahooFinance.chart(ticker, {
       period1: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
       period2: new Date(),
     });
