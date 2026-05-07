@@ -4,8 +4,6 @@ import dotenv from 'dotenv';
 import YahooFinance from 'yahoo-finance2';
 
 dotenv.config();
-console.log('API Key loaded:', process.env.ANTHROPIC_KEY ? 'YES' : 'NO');
-console.log('First 10 chars:', process.env.ANTHROPIC_KEY?.slice(0, 10));
 
 const yahooFinance = new YahooFinance();
 const server = express();
@@ -47,7 +45,6 @@ Provide a professional, data-driven analysis. Do not give financial advice.`;
     });
 
     const data = await response.json();
-     console.log('Anthropic response:', JSON.stringify(data));
     res.json({ analysis: data.content[0].text });
   } catch (error) {
     console.error('Anthropic API error:', error);
