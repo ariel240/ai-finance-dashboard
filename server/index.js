@@ -50,7 +50,7 @@ Provide a professional, data-driven analysis. Do not give financial advice.`;
   }
 });
 
-app.get('/api/quote/:ticker', async (req, res) => {
+server.get('/api/quote/:ticker', async (req, res) => {
   const { ticker } = req.params;
 
   try {
@@ -77,7 +77,7 @@ app.get('/api/quote/:ticker', async (req, res) => {
   }
 });
 
-app.get('/api/prices/:ticker', async (req, res) => {
+server.get('/api/prices/:ticker', async (req, res) => {
   const { ticker } = req.params;
 
   try {
@@ -106,7 +106,7 @@ app.get('/api/prices/:ticker', async (req, res) => {
   }
 });
 
-app.get('/api/prices/:ticker', async (req, res) => {
+server.get('/api/prices/:ticker', async (req, res) => {
   const { ticker } = req.params;
 
   try {
