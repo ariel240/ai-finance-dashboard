@@ -9,7 +9,12 @@ const yahooFinance = new YahooFinance();
 const server = express();
 const PORT = 3001;
 
-server.use(cors({ origin: 'http://localhost:5173' }));
+server.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://ai-finance-dashboard-zeta.vercel.app'
+  ]
+}));
 server.use(express.json());
 
 
