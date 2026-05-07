@@ -31,7 +31,7 @@ Provide a professional, data-driven analysis. Do not give financial advice.`;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.VITE_ANTHROPIC_KEY,
+        'x-api-key': process.env.ANTHROPIC_KEY,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
@@ -42,10 +42,96 @@ Provide a professional, data-driven analysis. Do not give financial advice.`;
     });
 
     const data = await response.json();
+     console.log('Anthropic response:', JSON.stringify(data));
     res.json({ analysis: data.content[0].text });
   } catch (error) {
     console.error('Anthropic API error:', error);
     res.status(500).json({ error: 'Failed to fetch AI analysis' });
+  }
+});
+
+app.get('/api/quote/:ticker', async (req, res) => {
+  const { ticker } = req.params;
+
+  try {
+    const response = await fetch(
+      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${process.env.ALPHA_VANTAGE_KEY}`
+    );
+    const data = await response.json();
+    const quote = data['Global Quote'];
+
+    if (!quote || !quote['05. price']) {
+      return res.status(400).json({ error: 'Invalid ticker or rate limit reached' });
+    }
+
+    res.json({
+      ticker,
+      price: parseFloat(quote['05. price']),
+      change: parseFloat(quote['09. change']),
+      changePercent: parseFloat(quote['10. change percent']),
+      volume: parseInt(quote['06. volume']),
+    });
+  } catch (error) {
+    console.error('Quote fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch quote' });
+  }
+});
+
+app.get('/api/prices/:ticker', async (req, res) => {
+  const { ticker } = req.params;
+
+  try {
+    const response = await fetch(
+      `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&outputsize=compact&apikey=${process.env.ALPHA_VANTAGE_KEY}`
+    );
+    const data = await response.json();
+    const timeSeries = data['Time Series (Daily)'];
+
+    if (!timeSeries) {
+      return res.status(400).json({ error: 'Invalid ticker or rate limit reached' });
+    }
+
+    const prices = Object.entries(timeSeries)
+      .slice(0, 30)
+      .reverse()
+      .map(([date, values]) => ({
+        date,
+        price: parseFloat(values['4. close']),
+      }));
+
+    res.json(prices);
+  } catch (error) {
+    console.error('Prices fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch prices' });
+  }
+});
+
+app.get('/api/prices/:ticker', async (req, res) => {
+  const { ticker } = req.params;
+
+  try {
+    const response = await fetch(
+      `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&outputsize=compact&apikey=${process.env.ALPHA_VANTAGE_KEY}`
+    );
+    const data = await response.json();
+    const timeSeries = data['Time Series (Daily)'];
+
+    if (!timeSeries) {
+      return res.status(400).json({ error: 'Invalid ticker or rate limit reached' });
+    }
+
+    const prices = Object.entries(timeSeries)
+      .slice(0, 30)
+      .reverse()
+      .map(([date, values]) => ({
+        date,
+        price: parseFloat(values['4. close']),
+      }));
+
+    res.json(prices);
+  } catch (error) {
+    console.error('Prices fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch prices' });
   }
 });
 

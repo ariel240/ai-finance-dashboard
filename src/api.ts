@@ -1,5 +1,4 @@
-const API_KEY = import.meta.env.VITE_ALPHA_VANTAGE_KEY;
-const BASE_URL = 'https://www.alphavantage.co/query';
+const SERVER_URL = 'http://localhost:3001';
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; 
 
 export interface StockQuote {
@@ -23,20 +22,17 @@ const priceCache = new Map<string, CacheEntry>();
 
 export async function fetchStockQuote(ticker: string): Promise<StockQuote> {
   const response = await fetch(
-    `${BASE_URL}?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${API_KEY}`
+    `${SERVER_URL}/api/quote/${ticker}`
   );
 
-  const data = await response.json();
-  const quote = data['Global Quote'];
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error);
+  }
 
-  return {
-    ticker,
-    price: parseFloat(quote['05. price']),
-    change: parseFloat(quote['09. change']),
-    changePercent: parseFloat(quote['10. change percent']),
-    volume: parseInt(quote['06. volume']),
-  };
+  return response.json();
 }
+
 
 export async function fetchDailyPrices(ticker: string): Promise<PricePoint[]> {
   const cached = priceCache.get(ticker);
@@ -48,24 +44,15 @@ export async function fetchDailyPrices(ticker: string): Promise<PricePoint[]> {
   }
 
   const response = await fetch(
-    `${BASE_URL}?function=TIME_SERIES_DAILY&symbol=${ticker}&outputsize=compact&apikey=${API_KEY}`
+    `${SERVER_URL}/api/prices/${ticker}`
   );
 
-  const data = await response.json();
-  const timeSeries = data['Time Series (Daily)'];
-
-  if (!timeSeries) {
-    console.error('No time series data:', data);
-    console.error('Full response:', JSON.stringify(data));
-    return [];
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error);
   }
-  const result = Object.entries(timeSeries)
-    .slice(0, 30)
-    .reverse()
-    .map(([date, values]: [string, any]) => ({
-      date,
-      price: parseFloat((values as any)['4. close']),
-    }));
+
+  const result = await response.json();
   priceCache.set(ticker, { data: result, timestamp: now });
   return result;
 }
@@ -86,16 +73,21 @@ export function formatVolume(volume: number): string {
 export async function fetchAIAnalysis(
   ticker: string,
   quote: StockQuote,
-  priceHistory: PricePoint[]
-): Promise<string> {
-  const response = await fetch('http://localhost:3001/api/analyze', {
+  priceHistory: PricePoint[]): Promise<string> {
+  
+    const response = await fetch(`${SERVER_URL}/api/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ ticker, quote, priceHistory }),
-  });
+    });
 
-  const data = await response.json();
-  return data.analysis;
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error);
+    }
+
+    const data = await response.json();
+    return data.analysis;
 }
