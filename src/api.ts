@@ -1,4 +1,4 @@
-const SERVER_URL = 'http://localhost:3001';
+const SERVER_URL = 'https://ai-finance-dashboard-server.onrender.com';
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; 
 
 export interface StockQuote {
