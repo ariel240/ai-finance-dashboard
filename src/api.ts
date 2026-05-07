@@ -38,7 +38,7 @@ export async function fetchDailyPrices(ticker: string): Promise<PricePoint[]> {
   const cached = priceCache.get(ticker);
   const now = Date.now();
 
-  if (cached && now - cached.timestamp < CACHE_DURATION_MS) {
+  if (cached && cached.data.length > 0 && now - cached.timestamp < CACHE_DURATION_MS) {
     console.log(`Using cached data for ${ticker}`);
     return cached.data;
   }

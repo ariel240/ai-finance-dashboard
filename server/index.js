@@ -1,14 +1,19 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import YahooFinance from 'yahoo-finance2';
 
 dotenv.config();
+console.log('API Key loaded:', process.env.ANTHROPIC_KEY ? 'YES' : 'NO');
+console.log('First 10 chars:', process.env.ANTHROPIC_KEY?.slice(0, 10));
 
+const yahooFinance = new YahooFinance();
 const server = express();
 const PORT = 3001;
 
 server.use(cors({ origin: 'http://localhost:5173' }));
 server.use(express.json());
+
 
 server.post('/api/analyze', async (req, res) => {
   const { ticker, quote, priceHistory } = req.body;
@@ -54,22 +59,13 @@ server.get('/api/quote/:ticker', async (req, res) => {
   const { ticker } = req.params;
 
   try {
-    const response = await fetch(
-      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${process.env.ALPHA_VANTAGE_KEY}`
-    );
-    const data = await response.json();
-    const quote = data['Global Quote'];
-
-    if (!quote || !quote['05. price']) {
-      return res.status(400).json({ error: 'Invalid ticker or rate limit reached' });
-    }
-
+    const response = await yahooFinance.quote(ticker);
     res.json({
       ticker,
-      price: parseFloat(quote['05. price']),
-      change: parseFloat(quote['09. change']),
-      changePercent: parseFloat(quote['10. change percent']),
-      volume: parseInt(quote['06. volume']),
+      price: response.regularMarketPrice,
+      change: response.regularMarketChange,
+      changePercent: response.regularMarketChangePercent,
+      volume: response.regularMarketVolume,
     });
   } catch (error) {
     console.error('Quote fetch error:', error);
@@ -81,52 +77,15 @@ server.get('/api/prices/:ticker', async (req, res) => {
   const { ticker } = req.params;
 
   try {
-    const response = await fetch(
-      `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&outputsize=compact&apikey=${process.env.ALPHA_VANTAGE_KEY}`
-    );
-    const data = await response.json();
-    const timeSeries = data['Time Series (Daily)'];
+    const result = await yahooFinance.historical(ticker, {
+      period1: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      period2: new Date(),
+    });
 
-    if (!timeSeries) {
-      return res.status(400).json({ error: 'Invalid ticker or rate limit reached' });
-    }
-
-    const prices = Object.entries(timeSeries)
-      .slice(0, 30)
-      .reverse()
-      .map(([date, values]) => ({
-        date,
-        price: parseFloat(values['4. close']),
-      }));
-
-    res.json(prices);
-  } catch (error) {
-    console.error('Prices fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch prices' });
-  }
-});
-
-server.get('/api/prices/:ticker', async (req, res) => {
-  const { ticker } = req.params;
-
-  try {
-    const response = await fetch(
-      `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&outputsize=compact&apikey=${process.env.ALPHA_VANTAGE_KEY}`
-    );
-    const data = await response.json();
-    const timeSeries = data['Time Series (Daily)'];
-
-    if (!timeSeries) {
-      return res.status(400).json({ error: 'Invalid ticker or rate limit reached' });
-    }
-
-    const prices = Object.entries(timeSeries)
-      .slice(0, 30)
-      .reverse()
-      .map(([date, values]) => ({
-        date,
-        price: parseFloat(values['4. close']),
-      }));
+    const prices = result.map(entry => ({
+      date: entry.date.toISOString().split('T')[0],
+      price: entry.close,
+    }));
 
     res.json(prices);
   } catch (error) {

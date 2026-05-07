@@ -33,10 +33,8 @@ function App() {
     if (!searchSymbol) return;
     setIsLoading(true);
     try {
-      const [quoteData, priceData] = await Promise.all([
-      fetchStockQuote(searchSymbol),
-      fetchDailyPrices(searchSymbol),
-      ]);
+      const quoteData = await fetchStockQuote(searchSymbol);
+      const priceData = await fetchDailyPrices(searchSymbol);
       const analysisData = await fetchAIAnalysis(searchSymbol, quoteData, priceData);
       setQuote(quoteData);
       setPriceHistory(priceData);
