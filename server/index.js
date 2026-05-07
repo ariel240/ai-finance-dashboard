@@ -1,13 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import YahooFinance from 'yahoo-finance2';
+import YahooFinance, { ExtendedCookieJar } from 'yahoo-finance2';
 
 dotenv.config();
 
 const yahooFinance = new YahooFinance({
   suppressNotices: ['yahooSurvey', 'ripHistorical'],
-  cookieJar: true,
+  cookieJar:  new ExtendedCookieJar(),
 });
 const server = express();
 const PORT = 3001;
