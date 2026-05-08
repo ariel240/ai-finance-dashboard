@@ -60,7 +60,7 @@ server.get('/api/quote/:ticker', async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_API_KEY}`
+      `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_KEY}`
     );
     const data = await response.json();
     if (!data || data.c === 0) {
@@ -86,7 +86,7 @@ server.get('/api/prices/:ticker', async (req, res) => {
   
   try {
     const response = await fetch(
-      `https://finnhub.io/api/v1/stock/candle?symbol=${ticker}&resolution=D&from=${from}&to=${to}&token=${process.env.FINNHUB_API_KEY}`
+      `https://finnhub.io/api/v1/stock/candle?symbol=${ticker}&resolution=D&from=${from}&to=${to}&token=${process.env.FINNHUB_KEY}`
     );
     const data = await response.json();
     if (!data || data.s !== 'ok') {
