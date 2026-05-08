@@ -59,7 +59,7 @@ server.get('/api/quote/:ticker', async (req, res) => {
   const { ticker } = req.params;
 
   try {
-    const response = await await fetch(
+    const response = await fetch(
       `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_API_KEY}`
     );
     const data = await response.json();
