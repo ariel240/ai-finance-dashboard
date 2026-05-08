@@ -1,9 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import YahooFinance from 'yahoo-finance2';
 
-dotenv.config();
+dotenv.config({ path: '../.env' });
 
+const yahooFinance = new YahooFinance();
 const server = express();
 const PORT = 3001;
 
@@ -14,7 +16,6 @@ server.use(cors({
   ]
 }));
 server.use(express.json());
-
 
 server.post('/api/analyze', async (req, res) => {
   const { ticker, quote, priceHistory } = req.body;
@@ -59,19 +60,13 @@ server.get('/api/quote/:ticker', async (req, res) => {
   const { ticker } = req.params;
 
   try {
-    const response = await fetch(
-      `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_KEY}`
-    );
-    const data = await response.json();
-    if (!data || data.c === 0) {
-      return res.status(400).json({ error: 'Invalid ticker or no data available' });
-    }
+    const response = await yahooFinance.quote(ticker);
     res.json({
       ticker,
-      price: parseFloat(data.c),           // Current price
-      change: parseFloat(data.d),          // Change
-      changePercent: parseFloat(data.dp),   // Percent change
-      volume: parseInt(data.v),            // Volume
+      price: response.regularMarketPrice,
+      change: response.regularMarketChange,
+      changePercent: response.regularMarketChangePercent,
+      volume: response.regularMarketVolume,
     });
   } catch (error) {
     console.error('Quote fetch error:', error);
@@ -81,20 +76,23 @@ server.get('/api/quote/:ticker', async (req, res) => {
 
 server.get('/api/prices/:ticker', async (req, res) => {
   const { ticker } = req.params;
-  const to = Math.floor(Date.now() / 1000);
-  const from = to - (30 * 24 * 60 * 60);
+  const endDate = new Date();
+  const to = new Date().toISOString().split('T')[0];
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 30);
+  const from = startDate.toISOString().split('T')[0];
   
   try {
     const response = await fetch(
-      `https://finnhub.io/api/v1/stock/candle?symbol=${ticker}&resolution=D&from=${from}&to=${to}&token=${process.env.FINNHUB_KEY}`
-    );
+      `https://api.massive.com/v2/aggs/ticker/${ticker.toUpperCase()}/range/1/day/${from}/${to}?adjusted=true&sort=asc&apiKey=${process.env.MASSIVE_KEY}`)
+    
     const data = await response.json();
-    if (!data || data.s !== 'ok') {
+    if (!data.results || data.results.length === 0) {
       return res.status(400).json({ error: 'Failed to fetch historical data or invalid ticker' });
     }
-    const prices = data.t.map((timestamp, index) => ({
-      date: new Date(timestamp * 1000).toISOString().split('T')[0],
-      price: parseFloat(data.c[index]), 
+    const prices = data.results.map(item => ({
+      date: new Date(item.t).toISOString().split('T')[0],
+      price: item.c 
     }));
 
     res.json(prices);

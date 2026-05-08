@@ -1,5 +1,5 @@
 const SERVER_URL = 'https://ai-finance-dashboard-server.onrender.com';
-const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; 
+const CACHE_DURATION_MS = 24 * 60 * 60 * 1000;
 
 export interface StockQuote {
   ticker: string;
@@ -57,6 +57,28 @@ export async function fetchDailyPrices(ticker: string): Promise<PricePoint[]> {
   return result;
 }
 
+export async function fetchAIAnalysis(
+  ticker: string,
+  quote: StockQuote,
+  priceHistory: PricePoint[]): Promise<string> {
+
+  const response = await fetch(`${SERVER_URL}/api/analyze`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ticker, quote, priceHistory }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error);
+  }
+
+  const data = await response.json();
+  return data.analysis;
+}
+
 export function formatVolume(volume: number): string {
   if (volume >= 1_000_000_000) {
     return `${(volume / 1_000_000_000).toFixed(1)}B`;
@@ -68,26 +90,4 @@ export function formatVolume(volume: number): string {
     return `${(volume / 1_000).toFixed(1)}K`;
   }
   return volume.toString();
-}
-
-export async function fetchAIAnalysis(
-  ticker: string,
-  quote: StockQuote,
-  priceHistory: PricePoint[]): Promise<string> {
-  
-    const response = await fetch(`${SERVER_URL}/api/analyze`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ ticker, quote, priceHistory }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error);
-    }
-
-    const data = await response.json();
-    return data.analysis;
 }
