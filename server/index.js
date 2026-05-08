@@ -60,13 +60,20 @@ server.get('/api/quote/:ticker', async (req, res) => {
   const { ticker } = req.params;
 
   try {
-    const response = await yahooFinance.quote(ticker);
+    const response = await fetch(
+      `https://api.massive.com/v2/snapshot/locale/us/markets/stocks/tickers/${ticker.toUpperCase()}?apiKey=${process.env.MASSIVE_KEY}`
+    );
+    const data = await response.json();
+    if (!data || !data.ticker) {
+      return res.status(400).json({ error: 'Invalid ticker or no data available from Massive' });
+    }
+    const t = data.ticker;
     res.json({
-      ticker,
-      price: response.regularMarketPrice,
-      change: response.regularMarketChange,
-      changePercent: response.regularMarketChangePercent,
-      volume: response.regularMarketVolume,
+      ticker: ticker.toUpperCase(),
+      price: t.day.c || t.lastTrade?.p || 0,      
+      change: t.todaysChange || 0,               
+      changePercent: t.todaysChangePerc || 0,     
+      volume: t.day.v || 0,                        
     });
   } catch (error) {
     console.error('Quote fetch error:', error);
