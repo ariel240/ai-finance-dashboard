@@ -61,19 +61,21 @@ server.get('/api/quote/:ticker', async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://api.massive.com/v2/snapshot/locale/us/markets/stocks/tickers/${ticker.toUpperCase()}?apiKey=${process.env.MASSIVE_KEY}`
+      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${process.env.ALPHA_VANTAGE_KEY}`
     );
     const data = await response.json();
-    if (!data || !data.ticker) {
-      return res.status(400).json({ error: 'Invalid ticker or no data available from Massive' });
+    const quote = data['Global Quote'];
+
+    if (!quote || !quote['05. price']) {
+      return res.status(400).json({ error: 'Invalid ticker or rate limit reached' });
     }
-    const t = data.ticker;
+
     res.json({
-      ticker: ticker.toUpperCase(),
-      price: t.day.c || t.lastTrade?.p || 0,      
-      change: t.todaysChange || 0,               
-      changePercent: t.todaysChangePerc || 0,     
-      volume: t.day.v || 0,                        
+      ticker,
+      price: parseFloat(quote['05. price']),
+      change: parseFloat(quote['09. change']),
+      changePercent: parseFloat(quote['10. change percent']),
+      volume: parseInt(quote['06. volume']),
     });
   } catch (error) {
     console.error('Quote fetch error:', error);
