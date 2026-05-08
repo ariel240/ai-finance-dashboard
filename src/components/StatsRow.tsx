@@ -13,8 +13,8 @@ interface StatCardProps {
 function StatCard({ label, value, color = 'text-white' }: StatCardProps) {
   return (
     <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-      <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{label}</p>
-      <p className={`text-2xl font-bold ${color}`}>{value}</p>
+      <p className="truncate text-gray-400 text-xs uppercase tracking-wider mb-1">{label}</p>
+      <p className={`truncate text-2xl font-bold ${color}`}>{value}</p>
     </div>
   );
 }
