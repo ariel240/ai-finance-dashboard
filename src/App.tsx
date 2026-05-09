@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { fetchStockQuote, StockQuote, fetchDailyPrices, PricePoint, fetchAIAnalysis } from './api';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
@@ -9,11 +9,18 @@ import Chart from './components/Chart'
 
 function App() {
   const [searchSymbol, setSearchSymbol] = useState<string>('');
-  const [watchlist, setWatchlist] = useState<string[]>(['AAPL', 'GOOGL', 'TSLA']);
+  const [watchlist, setWatchlist] = useState<string[]>(() => {
+    const saved = localStorage.getItem('watchlist');
+    return saved ? JSON.parse(saved) : ['AAPL', 'GOOGL', 'TSLA'];
+  });
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [priceHistory, setPriceHistory] = useState<PricePoint[]>([]);
   const [analysis, setAnalysis] = useState<string>('');
+
+  useEffect(() => {
+    localStorage.setItem('watchlist', JSON.stringify(watchlist));
+  }, [watchlist]);
 
   function handleSelectFromWatchlist(ticker: string): void {
     setSearchSymbol(ticker);
@@ -42,7 +49,7 @@ function App() {
 
       const analysisData = await fetchAIAnalysis(searchSymbol, quoteData, priceData);
       setAnalysis(analysisData);
-      
+
     } catch (error) {
       console.error('Failed to fetch stock data:', error);
     } finally {
