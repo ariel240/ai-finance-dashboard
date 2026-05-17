@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import YahooFinance from 'yahoo-finance2';
 
-dotenv.config({ path: '../.env' });
+dotenv.config();
 
 const yahooFinance = new YahooFinance();
 const server = express();
