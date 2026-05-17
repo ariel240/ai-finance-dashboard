@@ -58,7 +58,9 @@ Provide a professional, data-driven analysis. Do not give financial advice.`;
 
 server.get('/api/quote/:ticker', async (req, res) => {
   const { ticker } = req.params;
-
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log('ALPHA_VANTAGE_KEY exists:', !!process.env.ALPHA_VANTAGE_KEY);
+  console.log('ANTHROPIC_KEY exists:', !!process.env.ANTHROPIC_KEY);
   try {
     const response = await fetch(
       `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${process.env.ALPHA_VANTAGE_KEY}`
