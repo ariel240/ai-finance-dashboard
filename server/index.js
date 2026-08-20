@@ -19,7 +19,7 @@ server.use(express.json());
 server.post('/api/analyze', async (req, res) => {
   const { ticker, quote, priceHistory } = req.body;
 const prompt = `You are a professional financial analyst. Analyze the following stock data for ${ticker}. 
-  Provide a clean, concise analysis structured in 3 short paragraphs:
+  Provide a clean, concise analysis structured in in exactly 3 short sentences::
   1. Recent performance and trend.
   2. Key technical observations (using the Day Range $${quote.low.toFixed(2)} - $${quote.high.toFixed(2)}).
   3. Short-term outlook.
@@ -32,9 +32,7 @@ Current Data:
 - Day Range: $${quote.low.toFixed(2)} - $${quote.high.toFixed(2)}
 
 Last 30 days price history (oldest to newest):
-${priceHistory.map(p => `${p.date}: $${p.price.toFixed(2)}`).join('\n')}
-
-Provide a professional, data-driven analysis. Do not give financial advice.`;
+${priceHistory.map(p => `${p.date}: $${p.price.toFixed(2)}`).join('\n')}`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
