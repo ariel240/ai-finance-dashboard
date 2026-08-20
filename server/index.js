@@ -1,11 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import YahooFinance from 'yahoo-finance2';
+
 
 dotenv.config();
 
-const yahooFinance = new YahooFinance();
 const server = express();
 const PORT = 3001;
 
@@ -96,6 +95,7 @@ server.get('/api/prices/:ticker', async (req, res) => {
     );
     
     const data = await response.json();
+    console.log('Finnhub Prices response:', data);
     
     if (data.s === 'no_data' || !data.t) {
       return res.status(400).json({ error: 'Failed to fetch historical data or invalid ticker' });
