@@ -1,4 +1,4 @@
-import { StockQuote, formatVolume} from '../api';
+import { StockQuote} from '../api';
 
 interface StatsRowProps {
   quote: StockQuote | null;
@@ -34,8 +34,8 @@ function StatsRow({ quote }: StatsRowProps) {
         color={quote ? (isPositive ? 'text-emerald-400' : 'text-red-400') : 'text-gray-600'}
       />
       <StatCard
-        label="Volume"
-        value={quote ? formatVolume(quote.volume) : '--'}
+        label="Day Range"
+        value={quote ? `$${quote.low.toFixed(2)} - $${quote.high.toFixed(2)}` : '--'}
       />
     </div>
   );

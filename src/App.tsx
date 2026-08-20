@@ -11,7 +11,7 @@ function App() {
   const [searchSymbol, setSearchSymbol] = useState<string>('');
   const [watchlist, setWatchlist] = useState<string[]>(() => {
     const saved = localStorage.getItem('watchlist');
-    return saved ? JSON.parse(saved) : ['AAPL', 'GOOGL', 'TSLA'];
+    return saved ? JSON.parse(saved) : ['CHKP', 'GOOGL', 'TSLA'];
   });
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);

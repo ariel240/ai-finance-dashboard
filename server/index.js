@@ -26,7 +26,7 @@ server.post('/api/analyze', async (req, res) => {
 Current Data:
 - Price: $${quote.price.toFixed(2)}
 - Change: ${quote.changePercent.toFixed(2)}%
-- Volume: ${quote.volume}
+- Day Range: $${quote.low.toFixed(2)} - $${quote.high.toFixed(2)}
 
 Last 30 days price history (oldest to newest):
 ${priceHistory.map(p => `${p.date}: $${p.price.toFixed(2)}`).join('\n')}
@@ -61,22 +61,22 @@ server.get('/api/quote/:ticker', async (req, res) => {
   
   try {
     const response = await fetch(
-      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${process.env.ALPHA_VANTAGE_KEY}`
+      `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_KEY}`
     );
     const data = await response.json();
-    console.log('Alpha Vantage response:', JSON.stringify(data).slice(0, 300));
-    const quote = data['Global Quote'];
+    console.log('Finnhub Quote response:', data);
 
-    if (!quote || !quote['05. price']) {
-      return res.status(400).json({ error: 'Invalid ticker or rate limit reached' });
+    if (data.error || (data.c === 0 && data.d === null)) {
+      return res.status(400).json({ error: 'Invalid ticker or data not found' });
     }
 
     res.json({
-      ticker,
-      price: parseFloat(quote['05. price']),
-      change: parseFloat(quote['09. change']),
-      changePercent: parseFloat(quote['10. change percent']),
-      volume: parseInt(quote['06. volume']),
+      ticker: ticker.toUpperCase(),
+      price: data.c, 
+      change: data.d, 
+      changePercent: data.dp, 
+      high: data.h, 
+      low: data.l, 
     });
   } catch (error) {
     console.error('Quote fetch error:', error);
@@ -86,24 +86,28 @@ server.get('/api/quote/:ticker', async (req, res) => {
 
 server.get('/api/prices/:ticker', async (req, res) => {
   const { ticker } = req.params;
-  const endDate = new Date();
-  const to = new Date().toISOString().split('T')[0];
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
-  const from = startDate.toISOString().split('T')[0];
+  
+  const toTimestamp = Math.floor(Date.now() / 1000);
+  const fromTimestamp = toTimestamp - (30 * 24 * 60 * 60); 
   
   try {
     const response = await fetch(
-      `https://api.massive.com/v2/aggs/ticker/${ticker.toUpperCase()}/range/1/day/${from}/${to}?adjusted=true&sort=asc&apiKey=${process.env.MASSIVE_KEY}`)
+      `https://finnhub.io/api/v1/stock/candle?symbol=${ticker}&resolution=D&from=${fromTimestamp}&to=${toTimestamp}&token=${process.env.FINNHUB_KEY}`
+    );
     
     const data = await response.json();
-    if (!data.results || data.results.length === 0) {
+    
+    if (data.s === 'no_data' || !data.t) {
       return res.status(400).json({ error: 'Failed to fetch historical data or invalid ticker' });
     }
-    const prices = data.results.map(item => ({
-      date: new Date(item.t).toISOString().split('T')[0],
-      price: item.c 
-    }));
+
+    const prices = data.t.map((timestamp, index) => {
+      const dateObj = new Date(timestamp * 1000);
+      return {
+        date: dateObj.toISOString().split('T')[0],
+        price: data.c[index] 
+      };
+    });
 
     res.json(prices);
   } catch (error) {
