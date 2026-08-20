@@ -85,29 +85,25 @@ server.get('/api/quote/:ticker', async (req, res) => {
 
 server.get('/api/prices/:ticker', async (req, res) => {
   const { ticker } = req.params;
-  
-  const toTimestamp = Math.floor(Date.now() / 1000);
-  const fromTimestamp = toTimestamp - (30 * 24 * 60 * 60); 
+  const endDate = new Date();
+  const to = new Date().toISOString().split('T')[0];
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 30);
+  const from = startDate.toISOString().split('T')[0];
   
   try {
     const response = await fetch(
-      `https://finnhub.io/api/v1/stock/candle?symbol=${ticker}&resolution=D&from=${fromTimestamp}&to=${toTimestamp}&token=${process.env.FINNHUB_KEY}`
+      `https://api.massive.com/v2/aggs/ticker/${ticker.toUpperCase()}/range/1/day/${from}/${to}?adjusted=true&sort=asc&apiKey=${process.env.MASSIVE_KEY}`
     );
     
     const data = await response.json();
-    console.log('Finnhub Prices response:', data);
-    
-    if (data.s === 'no_data' || !data.t) {
+    if (!data.results || data.results.length === 0) {
       return res.status(400).json({ error: 'Failed to fetch historical data or invalid ticker' });
     }
-
-    const prices = data.t.map((timestamp, index) => {
-      const dateObj = new Date(timestamp * 1000);
-      return {
-        date: dateObj.toISOString().split('T')[0],
-        price: data.c[index] 
-      };
-    });
+    const prices = data.results.map(item => ({
+      date: new Date(item.t).toISOString().split('T')[0],
+      price: item.c 
+    }));
 
     res.json(prices);
   } catch (error) {
