@@ -41,7 +41,7 @@ Provide a professional, data-driven analysis. Do not give financial advice.`;
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -53,7 +53,7 @@ Provide a professional, data-driven analysis. Do not give financial advice.`;
           console.error('Anthropic API Error:', data);
           return res.status(response.status).json({ error: data.error?.message || 'Failed to fetch AI analysis' });
         }
-        
+
     res.json({ analysis: data.content[0].text });     
   } catch (error) {
     console.error('Anthropic API error:', error);
