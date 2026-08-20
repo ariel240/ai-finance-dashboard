@@ -20,7 +20,7 @@ server.post('/api/analyze', async (req, res) => {
   const { ticker, quote, priceHistory } = req.body;
 
   const prompt = `You are a professional financial analyst. Analyze the following stock data for ${ticker} 
-  and provide a concise 3-4 sentence analysis of the stock's recent performance and outlook.
+  and provide a concise 2-3 sentence analysis of the stock's recent performance and outlook.
 
 Current Data:
 - Price: $${quote.price.toFixed(2)}
