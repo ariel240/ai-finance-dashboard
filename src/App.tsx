@@ -80,7 +80,7 @@ function App() {
             <div className="px-8 pb-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[400px] ">
                 <Chart data={priceHistory} ticker={searchSymbol || null} />
-                <AIAnalysis analysis={analysis} />
+                <AIAnalysis analysis={analysis} isLoading={isLoading} />
               </div>
             </div>
           </div>
