@@ -18,9 +18,13 @@ server.use(express.json());
 
 server.post('/api/analyze', async (req, res) => {
   const { ticker, quote, priceHistory } = req.body;
-
-  const prompt = `You are a professional financial analyst. Analyze the following stock data for ${ticker} 
-  and provide a concise 2-3 sentence analysis of the stock's recent performance and outlook.
+const prompt = `You are a professional financial analyst. Analyze the following stock data for ${ticker}. 
+  Provide a clean, concise analysis structured in 3 short paragraphs:
+  1. Recent performance and trend.
+  2. Key technical observations (using the Day Range $${quote.low.toFixed(2)} - $${quote.high.toFixed(2)}).
+  3. Short-term outlook.
+  
+  Do not use Markdown tables or heavy headers. Use simple bullet points if needed. Do not give financial advice.
 
 Current Data:
 - Price: $${quote.price.toFixed(2)}
